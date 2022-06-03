@@ -1,0 +1,16 @@
+Control
+	Drag Strength : 10000
+	Invert Placement Rotation : true
+Hookup
+	Distances
+		Max : 10
+		Min : 2
+	Ripping
+		Chance To Not Destroy On Rip : 4
+		Delay : 3
+		Force : 15000
+		Resistance : 4000
+Structure
+	Drag Multiplyer : 4
+	Rotation Drag Multiplyer : 3
+	Weight Multiplyer : 10

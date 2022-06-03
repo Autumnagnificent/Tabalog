@@ -6,14 +6,33 @@ using System.Text.RegularExpressions;
 
 namespace Tabalog
 {
-	public static class Unpacker
+	public static class TabalogUnpacker
 	{
+		static int infLoopCap = 512;
+
 		public static Dictionary<string, string> Unpack(string text)
 		{
 			Dictionary<string, string> data = new Dictionary<string, string>();
 
+			if (text == null)
+			{
+				Debug.LogError("[Unpacker] : File or Text is null");
+				return data;
+			}
+			if (text == "")
+			{
+				Debug.LogError("[Unpacker] : File or Text is empty");
+				return data;
+			}
+
 			List<Token> tokens = Tokenizer(text);
 			tokens = tokens.CondenseTabs();
+
+			if (tokens.Count == 0)
+			{
+				Debug.LogError("[Unpacker] : No tokens found");
+				return data;
+			}
 
 			int LoopCount = 0;
 
@@ -41,14 +60,17 @@ namespace Tabalog
 					string key = pre + tokens[0].Value;
                     string value = "";
 
-                    if (tokens[1].Type == TokenType.Is)
+                    if (tokens.Count > 2 && tokens[1].Type == TokenType.Is)
 					{
                         value = tokens[2].Value;
                         TokensRead += 2;
 					}
 
-					data.Add(key, value);
-					context.Add((key, tabs));
+					if (!data.ContainsKey(key))
+					{
+						data.Add(key, value);
+					}
+						context.Add((key, tabs));
 				}
 
 				if (tokens[0].Type == TokenType.Is)
@@ -57,31 +79,27 @@ namespace Tabalog
 				}
 
 				// Remove the tokens that were processed
-				tokens.RemoveRange(0, TokensRead);
-
-				LoopCount++;
-				if(LoopCount > 256)
+				if (TokensRead > 0)
 				{
-					Debug.LogError("Infinite Loop Detected");
-					break;
+					if(TokensRead > tokens.Count)
+					{
+						Debug.LogError($"[Unpacker] TokensRead({TokensRead}) > tokens.Count({tokens.Count})");
+					}
+					
+					tokens.RemoveRange(0, TokensRead);
 				}
 
-				Debug.Log("");
+				LoopCount++;
+				if (LoopCount > infLoopCap)
+				{
+					Debug.LogError($"[Unpacker] Infinite Loop Cap reached ({infLoopCap})");
+					return data;
+				}
+
+				// Debug.Log("");
             }
 
 			return data;
-        }
-
-		public static void Test(string text, TokenType type)
-        {
-            // Print match word
-            MatchCollection matches = Regex.Matches(text, TokenLookup[type]);
-			string output = "";
-			foreach (Match match in matches)
-			{
-				output += $"\"{match.Value}\"\n";
-			}
-			Debug.Log(output);
         }
 
         static List<Token> Tokenizer(string text)
@@ -146,26 +164,118 @@ namespace Tabalog
 			{ TokenType.Is, @"[:=]" },
 			{ TokenType.Tab, @"\t" },
 		};
+
+        enum TokenType
+        {
+            Word,
+            Is,
+            Tab,
+        }
+
+        struct Token
+        {
+            public TokenType Type;
+			#nullable enable
+            public string Value;
+
+            public Token(TokenType type, string? value = null)
+            {
+                Type = type;
+                Value = value ?? "";
+            }
+			#nullable disable
+        }
 	}
 
-	public enum TokenType
+	public static class TabalogPacker
 	{
-		Word,
-		Is,
-		Tab,
-	}
-
-	public struct Token
-	{
-		public TokenType Type;
-		#nullable enable
-		public string Value;
-
-		public Token(TokenType type, string? value = null)
+        public static string Pack(Dictionary<string, string> Dict)
 		{
-			Type = type;
-			Value = value ?? "";
+            if (Dict == null)
+            {
+                Debug.LogError("[Packer] : Dictionary is null");
+                return null;
+            }
+
+            var list = Dict.ToList();
+			list.Sort((x, y) => x.Key.CompareTo(y.Key));
+            Dict = list.ToDictionary(k => k.Key, v => v.Value);
+
+			string text = "";
+
+			for (int i = 0; i < Dict.Count; i++)
+			{
+				string key = Dict.Keys.ElementAt(i);
+				string value = Dict.Values.ElementAt(i);
+				List<string> split = key.Split('/').ToList();
+				
+				string tabString = "";
+				for (int j = 1; j < split.Count; j++)
+				{
+					tabString += "\t";
+				}
+
+				if (value == null || value == "")
+					text += $"{tabString + split.Last()}";
+				else
+					text += $"{tabString + split.Last()} : {value}";
+
+				if (i < Dict.Count - 1) text += "\n";
+			}
+
+			return text;
 		}
-		#nullable disable
+
+		public static string DataToString(List<data> Data, int tabs = 0)
+		{
+			string text = "";
+
+			for (int i = 0; i < Data.Count; i++)
+			{
+				data d = Data[i];
+
+				string tabString = "";
+				for (int j = 0; j < d.tabs; j++)
+				{
+					tabString += "\t";
+				}
+
+				text += $"{tabString + d.Key} : {d.Value}";
+
+				if (i < Data.Count - 1) text += "\n";
+			}
+
+			return text;
+        }
+
+		public struct data
+		{
+			#nullable enable
+			public string Key;
+            public string? Value;
+			public List<data> Children;
+
+            public int tabs;
+
+            public data(string key, string? value = null, int tabs = 0, List<data>? children = null)
+			{
+				this.Key = key;
+				this.Value = value;
+				this.tabs = tabs;
+				this.Children = children ?? new List<data>();
+			}
+			#nullable disable
+		}
+	}
+
+	public static class TabalogUtility
+	{
+		public static bool IsValid(this string text)
+		{
+			// return !(string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text));
+			bool isValid = text != null && text != "";
+
+			return isValid;
+		}
 	}
 }

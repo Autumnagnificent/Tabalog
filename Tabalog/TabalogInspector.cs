@@ -11,16 +11,17 @@ namespace Tabalog
     public class TabalogInspector : Editor
     {
         bool showLoadedText = false;
-        bool showFullPath = false;
         string TestKey = "";
+
+        TabalogHost tabalogHost;
 
         public override void OnInspectorGUI()
         {
-            TabalogHost tabalogHost = (TabalogHost)target;
+            tabalogHost = (TabalogHost)target;
 
-            if (tabalogHost.GetLoadedText() != null)
+            if (tabalogHost.GetLoadedText().IsValid())
             {
-                showLoadedText = EditorGUILayout.Foldout(showLoadedText, "Loaded Tabalog Data");
+                showLoadedText = EditorGUILayout.Foldout(showLoadedText, $"Loaded Tabalog Data : {tabalogHost.GetLoadedText().Length} chars");
                 if (showLoadedText) EditorGUILayout.LabelField(tabalogHost.GetLoadedText(), EditorStyles.textArea);
             }
             else
@@ -29,78 +30,86 @@ namespace Tabalog
             }
 
 
-            if (tabalogHost.GetLoadedText() == null)
+            if (!tabalogHost.GetPath().IsValid())
             {
                 if (GUILayout.Button("Open File"))
 				{
 					tabalogHost.OpenFile();
-					tabalogHost.ConvertToData();
 				}
-
             }
             else
             {
+                EditorGUILayout.LabelField(tabalogHost.GetPath());
                 EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("Reload File")) { tabalogHost.LoadFile(); tabalogHost.ConvertToData(); }
+                if (GUILayout.Button("Reload File")) tabalogHost.LoadFile();
                 if (GUILayout.Button("Unload File")) tabalogHost.ResetLoadedData();
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Pack and Save")) tabalogHost.Save();
+                if (GUILayout.Button("Pack and Save As")) tabalogHost.SaveAs();
                 EditorGUILayout.EndHorizontal();
             }
 
-            EditorGUILayout.Space();
+            EditorGUILayout.Space(32);
 
-            if (tabalogHost.GetLoadedText() != null)
+            if (tabalogHost.GetLoadedText().IsValid() && tabalogHost.GetData() != null)
             {
                 float inspectorWidth = EditorGUIUtility.currentViewWidth;
-                float size = Mathf.Min(Mathf.Clamp(GUI.skin.textField.CalcSize(new GUIContent(TestKey)).x, 48, inspectorWidth), inspectorWidth - 24);
+                float size = Mathf.Min(Mathf.Clamp(GUI.skin.textField.CalcSize(new GUIContent(TestKey)).x + 8, 48, inspectorWidth), inspectorWidth - 24);
                 GUILayoutOption guiSize = GUILayout.Width(size);
 
-                string valueText = tabalogHost[TestKey] ?? "Key not found";
-                bool morelines = size > (inspectorWidth - GUI.skin.textField.CalcSize(new GUIContent(valueText)).x);
 
-                if (!morelines) EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.BeginHorizontal();
 
                 TestKey = EditorGUILayout.TextField(TestKey, guiSize);
-                EditorGUILayout.LabelField(valueText);
 
-                if (!morelines) EditorGUILayout.EndHorizontal();
+                if (TestKey.IsValid())
+                {
+                    if (!tabalogHost.Exists(TestKey))
+                    {
+                        if(GUILayout.Button("Add Key", GUILayout.Width(GUI.skin.textField.CalcSize(new GUIContent("Add Key")).x + 12)))
+                        {
+                            tabalogHost[TestKey] = "";
+                        }
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Remove Key", GUILayout.Width(GUI.skin.textField.CalcSize(new GUIContent("Remove Key")).x + 12)))
+                        {
+                            tabalogHost.Remove(TestKey);
+                        }
+                        else
+                        {
+                            EditorGUILayout.EndHorizontal();
+                            string value = tabalogHost[TestKey, false];
+                            tabalogHost[TestKey] = EditorGUILayout.TextField(value);
+                            EditorGUILayout.BeginHorizontal();
+                        }
+                    }
+                }
+                else
+                {
+                    GUILayout.Label("Input a Key to add, remove, or modify\t(Ex : \"Key/SubKey/A\")");
+                }
+
+                EditorGUILayout.EndHorizontal();
             }
 
-			EditorGUILayout.Space();
+            if (tabalogHost.GetPath().IsValid())
+            {
+                EditorGUILayout.Space(24);
 
-            if (tabalogHost.GetData() != null)
-                display(tabalogHost.GetData());
-            else
-                EditorGUILayout.LabelField("Data is Invalid or There is nothing to display");
+                if (tabalogHost.GetData() != null)
+                    display(tabalogHost.GetData());
+                else
+                    EditorGUILayout.LabelField("Data is Invalid or There is nothing to display");
+            }
+
         }
 
         void display(Dictionary<string, string> data)
         {
-            showFullPath = EditorGUILayout.Toggle("Show Full Path", showFullPath);
-
-            foreach (KeyValuePair<string, string> kvp in data)
-            {
-                int indent = Regex.Matches(kvp.Key, @"/").Count;
-                string key = kvp.Key;
-
-                bool bold = false;
-                if (key == TestKey) bold = true; 
-
-                if (!showFullPath)
-                {
-                    var split = key.Split('/');
-                    key = split[split.Length - 1];
-                }
-
-                EditorGUILayout.BeginHorizontal();
-
-                for (int i = 0; i < indent; i++) EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField(key, bold ? EditorStyles.boldLabel : EditorStyles.label);
-                for (int i = 0; i < indent; i++) EditorGUI.indentLevel--;
-
-                EditorGUILayout.LabelField((kvp.Value as string), bold ? EditorStyles.boldLabel : EditorStyles.label);
-
-                EditorGUILayout.EndHorizontal();
-            }
+            EditorGUILayout.TextArea(tabalogHost.Pack(), EditorStyles.label);
         }
     }
 }
