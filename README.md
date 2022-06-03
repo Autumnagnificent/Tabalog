@@ -3,7 +3,7 @@
 ## What is Tabalog?
 **Tabalog is a easy to use and easy to understand tool for quickly Loading and Saving data**. The file format is super simple, like maybe too simple. Named Tabalog because it kinda looks like a Catalog, and for it's use of tabs.
 
-A .tabalog file file can look like this:
+For example - A .tabalog file file can look like this:
 
 ```
 Control
