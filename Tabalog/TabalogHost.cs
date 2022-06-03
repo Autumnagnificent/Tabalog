@@ -178,12 +178,14 @@ namespace Tabalog
         public void Remove(string key)
         {
             // Remove all children
-            foreach (var child in _data.Where(x => x.Key.StartsWith(key + "/")).ToList())
-            {
-                Remove(child.Key);
-            }
+            GetSub(key).ToList().ForEach(k => _data.Remove(k.Key));
 
             _data.Remove(key);
+        }
+
+        public Dictionary<string, string> GetSub(string key)
+        {
+            return _data.Where(x => x.Key.StartsWith(key + "/")).ToDictionary(x => x.Key, x => x.Value);
         }
     }
 }
