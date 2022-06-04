@@ -76,7 +76,7 @@ namespace Tabalog
             }
         }
 
-        public void OpenFile()
+        public void SelectFile()
         {
             string newpath = EditorUtility.OpenFilePanel("Open Tabalog File", Application.dataPath, "tabalog");
 
@@ -86,10 +86,10 @@ namespace Tabalog
             LoadFile();
         }
 
-        public void LoadFile()
+        public void LoadFile(string newpath = null)
         {
+            if (newpath.IsValid()) SetPath(newpath);
             if (!_path.IsValid()) { Debug.LogError("[TabalogHost LoadFile] Path is null or Empty"); return; }
-
 
             Stream file = File.Open(_path, FileMode.Open);
             StreamReader reader = new StreamReader(file);
@@ -106,10 +106,10 @@ namespace Tabalog
             _data = TabalogUnpacker.Unpack(_loadedtext);
         }
 
-        public void SaveAs()
+        public void SaveAs(string newpath = "")
         {
-            string newpath = EditorUtility.SaveFilePanel("Save Tabalog File", _path, $"{_path.Split('/').Last().Split('.')[0]} Copy", "tabalog");
-            if (newpath.Length == 0) { return; }
+            if (!newpath.IsValid()) newpath = EditorUtility.SaveFilePanel("Save Tabalog File", _path, $"{_path.Split('/').Last().Split('.')[0]} Copy", "tabalog");
+            if (newpath.Length == 0) return;
             
             SetPath(newpath);
             Save();
@@ -185,6 +185,7 @@ namespace Tabalog
 
         public Dictionary<string, string> GetSub(string key)
         {
+            if (!key.IsValid()) return _data;
             return _data.Where(x => x.Key.StartsWith(key + "/")).ToDictionary(x => x.Key, x => x.Value);
         }
     }

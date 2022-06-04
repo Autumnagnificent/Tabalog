@@ -34,7 +34,7 @@ namespace Tabalog
             {
                 if (GUILayout.Button("Open File"))
 				{
-					tabalogHost.OpenFile();
+					tabalogHost.SelectFile();
 				}
             }
             else
