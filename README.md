@@ -35,17 +35,59 @@ In Unity, create a GameObject and attach the **TabalogHost** script to it. Click
 
 Open your `.tagalog` file and it will be loaded in. Alot more options will now appear. The dropdown at the top shows the raw data loaded in, simply just showing the text. At the bottom, it will show the rendered out data. Above that, there will be a Text feild in which you can type in a **key**, and either create, remove, or modify it.
 
-You can think of Tabalog as a Dictionary Saver and Loader (*Which is basicaly what it is*). Getting a Key is as simple as ```TabalogHost["Key/Subkey/Subberkey/Even Subber Key"]``` to return a value. Creating (and/or Modifying) a Key is as simple as ```TabalogHost["Key/Subber key/Even Subber Key] = NewValue```
+#### Working with Keys in Script
+You can think of Tabalog as a Dictionary Saver and Loader (*Which is basicaly what it is*). Getting a Key's value is as simple as
+```
+TabalogHost["Key/Subkey/Subberkey/Even Subber Key"]
+```
 
-Tabalog will automatically create a all the keys needed. Ex: If you do ```TabalogHost["Key/Subber key/Even Subber Key] = NewValue``` and `Key` and `Key/Subber key` dont exist, then they will be created with no values.
+Creating (and/or Modifying) a Key is as simple as
+```
+TabalogHost["Key/Subber key/Even Subber Key] = NewValue
+```
 
-You can also call ```TabalogHost.GetSub(desiredkey)``` to get all the children of a key, and call ```TabalogHost.Exists(keyToCheck)``` to get a bool back if the key... well... exists
+Tabalog will automatically create a all the keys needed. If you do the above function and `Key` and `Key/Subber key` don't exist, then they will be created with no values.
 
-Removing a Key is unsurprisingly as simple as calling ```TabalogHost.Remove(dersiredKey)```. Doing this not only removes this key, but all of it's subkeys as well. 
+You can also call this get all the children of a key :
+```
+TabalogHost.GetSub(desiredkey)
+```
 
-To Save the data, all you have to do is call ```Tabalog.Save()``` and it will save it to the file that the data was orginaly loaded from. You can also Save the data to any other file using ```Tabalog.SaveAs(optionalPath)```, if no path is givin, then it will open up a window for you to choose.
+And use this to get a bool back if the key... well... exists :
+```
+TabalogHost.Exists(keyToCheck)
+```
+
+Removing a Key is unsurprisingly as simple as calling this, This not only removes the desired key, but all of it's subkeys as well. 
+```
+TabalogHost.Remove(desiredKey)
+```
+
+#### Saving Data
+To Save the data, all you have to do is call this and it will save it to the file that the data was orginaly loaded from.
+```
+TabalogHost.Save()
+```
+
+You can also Save the data to any other file using this, if no path is givin, then it will open up a window for you to choose.
+```
+Tabalog.SaveAs(optionalPath)
+```
 
 Both of these saving functions all are so avaliable in the Inspector.
+
+#### Loading Data
+
+To Load Files via Script, you can use this function to to read and process a file (If the path is left unassinged, it will use the previous set path) :
+```
+TabalogHost.LoadFile(optionalPath)
+```
+
+Selecting a file from file exploxer is as simple as :
+```
+TabalogHost.SelectFile()
+```
+
 ## Why should I use it?
 I'm not saying you should, but I mean... ya could if you want... I don't know if it's any good... This is just a personal project of mine...
 
