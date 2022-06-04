@@ -3,7 +3,7 @@
 ## What is Tabalog?
 **Tabalog is a easy to use and easy to understand tool for quickly Loading and Saving data**. The file format is super simple, like maybe too simple. Named Tabalog because it kinda looks like a Catalog, and for it's use of tabs.
 
-For example - a .tabalog file file can look like this:
+For example - a `.tabalog file` file can look like this:
 
 ```
 Control
@@ -28,3 +28,5 @@ As you can see it looks awfully similar to a the structure of a folder. The file
 
 To note, just because a section has a value set to it, does not mean that it cannot contain sections - they can contain sections and have a value.
 ## How do I use it?
+
+First things first, you need to setup a `.tabalog` file, look at the above section to understand it's structure.
